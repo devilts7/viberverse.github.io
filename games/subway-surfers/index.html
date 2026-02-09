@@ -52,13 +52,13 @@
     </div>
 
     <script>
-      // EXPORT SAVE DATA
+      // EXPORT SAVE DATA (whatever the game stored in localStorage)
       function exportUnitySave() {
         const keys = Object.keys(localStorage);
         let saveData = {};
 
         keys.forEach(key => {
-          if (key.includes("Unity") || key.includes("SanFrancisco")) {
+          if (key.includes("Unity") || key.includes("SanFrancisco") || key === "subway_surfers_save") {
             saveData[key] = localStorage.getItem(key);
           }
         });
@@ -91,7 +91,7 @@
               localStorage.setItem(key, data[key]);
             });
 
-            alert("Save imported! Reload the game.");
+            alert("Save imported! Reload or press Load.");
           };
 
           reader.readAsText(file);
@@ -100,12 +100,27 @@
         input.click();
       }
 
-      // BUTTON HOOKS
-      document.getElementById("saveBtn").onclick = exportUnitySave;
-      document.getElementById("loadBtn").onclick = importUnitySave;
+      // BUTTON HOOKS → talk to iframe bridge
+      document.getElementById("saveBtn").onclick = () => {
+        const frame = document.getElementById("gameframe").contentWindow;
+        if (frame && typeof frame.RequestUnitySave === "function") {
+          frame.RequestUnitySave();
+        } else {
+          // fallback: just export localStorage
+          exportUnitySave();
+        }
+      };
+
+      document.getElementById("loadBtn").onclick = () => {
+        const frame = document.getElementById("gameframe").contentWindow;
+        if (frame && typeof frame.LoadGameIntoUnity === "function") {
+          frame.LoadGameIntoUnity();
+        } else {
+          importUnitySave();
+        }
+      };
     </script>
 
     <script src="../script.js"></script>
   </body>
 </html>
-
