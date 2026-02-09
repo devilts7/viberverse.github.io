@@ -29,13 +29,57 @@
           "SanFrancisco.asm.memory.unityweb": 951447,
           "SanFrancisco.data.unityweb": 18323917,
           "SanFrancisco.wasm.code.unityweb": 7279617,
-          "SanFrancisco.wasm.framework.unityweb": 90693,
-        },
+          "SanFrancisco.wasm.framework.unityweb": 90693
+        }
       };
     </script>
   </head>
 
   <body>
     <script src="master-loader.js"></script>
+
+    <!-- ⭐ SAVE/LOAD BRIDGE ⭐ -->
+    <script>
+      let unityInstanceRef = null;
+
+      // Capture Unity instance created by unity.js
+      Object.defineProperty(window, "unityInstance", {
+        set(v) {
+          unityInstanceRef = v;
+          console.log("Unity instance captured:", v);
+
+          // Auto-load save if exists
+          const saved = localStorage.getItem("subway_surfers_save");
+          if (saved) {
+            v.SendMessage("GameController", "LoadFromJS", saved);
+          }
+        },
+        get() {
+          return unityInstanceRef;
+        }
+      });
+
+      // Unity → JS (Unity calls this to save)
+      window.SaveGameFromUnity = function(json) {
+        localStorage.setItem("subway_surfers_save", json);
+        console.log("Saved:", json);
+      };
+
+      // JS → Unity (wrapper page calls this)
+      window.RequestUnitySave = function() {
+        if (unityInstanceRef) {
+          unityInstanceRef.SendMessage("GameController", "RequestSave");
+        }
+      };
+
+      window.LoadGameIntoUnity = function() {
+        if (unityInstanceRef) {
+          const saved = localStorage.getItem("subway_surfers_save");
+          if (saved) {
+            unityInstanceRef.SendMessage("GameController", "LoadFromJS", saved);
+          }
+        }
+      };
+    </script>
   </body>
 </html>
