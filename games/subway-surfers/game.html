@@ -38,7 +38,7 @@
   <body>
     <script src="master-loader.js"></script>
 
-    <!-- ⭐ SAVE/LOAD BRIDGE ⭐ -->
+    <!-- SAVE/LOAD BRIDGE -->
     <script>
       let unityInstanceRef = null;
 
@@ -51,7 +51,12 @@
           // Auto-load save if exists
           const saved = localStorage.getItem("subway_surfers_save");
           if (saved) {
-            v.SendMessage("GameController", "LoadFromJS", saved);
+            try {
+              // These names are placeholders unless the build actually exposes them
+              v.SendMessage("GameController", "LoadFromJS", saved);
+            } catch (e) {
+              console.warn("Auto-load failed:", e);
+            }
           }
         },
         get() {
@@ -59,16 +64,20 @@
         }
       });
 
-      // Unity → JS (Unity calls this to save)
+      // Unity → JS (Unity would call this if wired in C#)
       window.SaveGameFromUnity = function(json) {
         localStorage.setItem("subway_surfers_save", json);
         console.log("Saved:", json);
       };
 
-      // JS → Unity (wrapper page calls this)
+      // JS → Unity (called from outer page)
       window.RequestUnitySave = function() {
         if (unityInstanceRef) {
-          unityInstanceRef.SendMessage("GameController", "RequestSave");
+          try {
+            unityInstanceRef.SendMessage("GameController", "RequestSave");
+          } catch (e) {
+            console.warn("RequestSave failed:", e);
+          }
         }
       };
 
@@ -76,7 +85,11 @@
         if (unityInstanceRef) {
           const saved = localStorage.getItem("subway_surfers_save");
           if (saved) {
-            unityInstanceRef.SendMessage("GameController", "LoadFromJS", saved);
+            try {
+              unityInstanceRef.SendMessage("GameController", "LoadFromJS", saved);
+            } catch (e) {
+              console.warn("LoadFromJS failed:", e);
+            }
           }
         }
       };
