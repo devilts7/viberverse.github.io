@@ -33,18 +33,79 @@
         <div class="nav-link-name">ABOUT</div>
       </a>
     </nav>
+
     <div class="game-wrap">
       <div class="game-container">
         <iframe src="game.html" frameborder="0" id="gameframe"></iframe>
+
         <div class="game-bar">
           <img src="img/splash.jpg" class="game-bar-img"/>
           <h5 class="game-bar-title">Subway Surfers</h5>
+
           <div class="game-bar-right">
+            <button id="saveBtn" style="margin-right:10px;">Save</button>
+            <button id="loadBtn" style="margin-right:10px;">Load</button>
             <img src="/media/fullscreen.svg" id="fullscreen" title="Fullscreen Mode"/>
           </div>
         </div>
       </div>
     </div>
+
+    <script>
+      // EXPORT SAVE DATA
+      function exportUnitySave() {
+        const keys = Object.keys(localStorage);
+        let saveData = {};
+
+        keys.forEach(key => {
+          if (key.includes("Unity") || key.includes("SanFrancisco")) {
+            saveData[key] = localStorage.getItem(key);
+          }
+        });
+
+        const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "subway-surfers-save.json";
+        a.click();
+
+        URL.revokeObjectURL(url);
+      }
+
+      // IMPORT SAVE DATA
+      function importUnitySave() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+
+        input.onchange = e => {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+
+          reader.onload = event => {
+            const data = JSON.parse(event.target.result);
+
+            Object.keys(data).forEach(key => {
+              localStorage.setItem(key, data[key]);
+            });
+
+            alert("Save imported! Reload the game.");
+          };
+
+          reader.readAsText(file);
+        };
+
+        input.click();
+      }
+
+      // BUTTON HOOKS
+      document.getElementById("saveBtn").onclick = exportUnitySave;
+      document.getElementById("loadBtn").onclick = importUnitySave;
+    </script>
+
     <script src="../script.js"></script>
   </body>
 </html>
+
